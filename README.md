@@ -36,3 +36,9 @@ curl -X POST "http://localhost:8000/api/v1/logs/generate" -H "Content-Type: appl
     "days_back": 7
 }'
 ```
+
+## Retrieve Logs
+To retrieve logs with optional filtering, you can use the following API endpoint:
+```bash
+curl -X GET "http://localhost:8000/api/v1/logs?severity=ERROR&source=test-service&start_date=2023-09-01T00:00:00Z&end_date=2023-10-01T23:59:59Z&limit=50&offset=0"
+```
