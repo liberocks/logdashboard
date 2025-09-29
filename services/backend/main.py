@@ -1,7 +1,9 @@
+import os
+
+from app.api import logs
+from app.database import get_database
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import get_database
-import os
 
 app = FastAPI(
     title="Log Dashboard API",
@@ -17,6 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(logs.router, prefix="/api/v1/logs", tags=["logs"])
 
 
 @app.get("/")

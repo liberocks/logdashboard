@@ -1,12 +1,20 @@
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
 from datetime import datetime
+from enum import Enum
+
+from pydantic import BaseModel
 
 
-class Log(BaseModel):
+class SeverityLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARN = "WARN"
+    ERROR = "ERROR"
+    FATAL = "FATAL"
+
+
+class LogModel(BaseModel):
     id: str
-    severity: str
+    severity: SeverityLevel
     message: str
-    source: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    source: str
     timestamp: datetime

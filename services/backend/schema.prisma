@@ -1,8 +1,6 @@
-// Prisma schema file for Log Dashboard
-
 generator client {
   provider             = "prisma-client-py"
-  recursive_type_depth = 5
+  recursive_type_depth = "5"
 }
 
 datasource db {
@@ -11,11 +9,10 @@ datasource db {
 }
 
 model Log {
-  id        String   @id @default(uuid())
+  id        String   @id @db.Uuid
   severity  String
   message   String
   source    String
-  metadata  Json?
   timestamp DateTime @default(now())
 
   @@index([severity])
