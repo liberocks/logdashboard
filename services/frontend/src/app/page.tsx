@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LogModel } from "@/model";
 import { getLogs } from "@/api/get-logs.api";
@@ -62,6 +64,12 @@ export default function Home() {
     totalPages,
     handleDownload,
     handleClearFilter,
+    dialogOpen,
+    setDialogOpen,
+    newLogData,
+    setNewLogData,
+    handleCreateNewLog,
+    handleGenerateRandomLogs,
   } = usePageState();
 
   return (
@@ -75,10 +83,86 @@ export default function Home() {
               <p className="text-sm text-gray-500">Monitor system logs and their severity levels.</p>
             </div>
             <div className="flex flex-row gap-2">
-              <Button variant="outline" className="cursor-pointer">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Log
-              </Button>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="cursor-pointer">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Log
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-white sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Create New Log</DialogTitle>
+                    <DialogDescription>Add a new log entry to the system.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <label htmlFor="severity" className="text-sm font-medium">
+                        Severity
+                      </label>
+                      <Select
+                        value={newLogData?.severity || ""}
+                        onValueChange={(value) => setNewLogData((prev) => ({ ...prev, severity: value as any }))}
+                      >
+                        <SelectTrigger className="w-full cursor-pointer hover:bg-gray-50">
+                          <SelectValue placeholder="Select severity" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white">
+                          {Object.values(SEVERITY_LEVELS).map((severity) => (
+                            <SelectItem key={severity} value={severity} className="cursor-pointer hover:bg-gray-100">
+                              {severity}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <label htmlFor="source" className="text-sm font-medium">
+                        Source
+                      </label>
+                      <Input
+                        id="source"
+                        placeholder="Enter log source"
+                        value={newLogData?.source || ""}
+                        onChange={(e) => setNewLogData((prev) => ({ ...prev, source: e.target.value }))}
+                        className="bg-white"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label htmlFor="message" className="text-sm font-medium">
+                        Message
+                      </label>
+                      <Input
+                        id="message"
+                        placeholder="Enter log message"
+                        value={newLogData?.message || ""}
+                        onChange={(e) => setNewLogData((prev) => ({ ...prev, message: e.target.value }))}
+                        className="bg-white"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <div className="flex w-full flex-col gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={handleCreateNewLog}
+                        className="w-full cursor-pointer"
+                        disabled={!newLogData?.severity || !newLogData?.source || !newLogData?.message}
+                      >
+                        Create Log
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-gray-200"></div>
+                        <span className="text-xs text-gray-500">or</span>
+                        <div className="h-px flex-1 bg-gray-200"></div>
+                      </div>
+                      <Button variant="ghost" onClick={handleGenerateRandomLogs} className="w-full cursor-pointer">
+                        Generate Random Logs
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -241,6 +325,9 @@ export default function Home() {
                     </SelectItem>
                     <SelectItem value="100" className="cursor-pointer hover:bg-gray-100">
                       100
+                    </SelectItem>
+                    <SelectItem value="1000" className="cursor-pointer hover:bg-gray-100">
+                      1000
                     </SelectItem>
                   </SelectContent>
                 </Select>

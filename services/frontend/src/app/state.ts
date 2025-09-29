@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 
 import { LogModel } from "@/model";
 import { getLogs } from "@/api/get-logs.api";
-import { getAggregatedLogs, GetAggregatedLogsResponse, GetLogsParameter } from "@/api";
+import { createLog, generateLogs, GenerateLogsPayload, getAggregatedLogs, GetAggregatedLogsResponse, GetLogsParameter } from "@/api";
 import { downloadLogsAsFile } from "@/api/download-logs.api";
 import moment from "moment";
 
@@ -19,6 +19,9 @@ export const usePageState = () => {
   const [sortField, setSortField] = useState<keyof LogModel>("timestamp");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [uniqueSources, setUniqueSources] = useState<string[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newLogData, setNewLogData] = useState<Partial<LogModel> | null>(null);
+  const [randomParameters, setRandomParameters] = useState<GenerateLogsPayload>({ count: 100, days_back: 7 });
 
   // Function to transform logs into chart data
   const processLogsForChart = (logData: LogModel[]) => {
@@ -193,6 +196,40 @@ export const usePageState = () => {
     setPage(1);
   };
 
+  const handleCreateNewLog = async () => {
+    try {
+      await createLog({
+        severity: newLogData?.severity as any,
+        message: newLogData?.message as string,
+        source: newLogData?.source as string,
+      });
+
+      setNewLogData(null);
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create new log:", error);
+    }
+
+    setPage(1);
+    fetchLogs(1, pageSize, filter);
+    fetchAggregatedLogs(1, pageSize, filter);
+  };
+
+  const handleGenerateRandomLogs = async () => {
+    try {
+      await generateLogs(randomParameters);
+
+      setNewLogData(null);
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to generate random logs:", error);
+    }
+
+    setPage(1);
+    fetchLogs(1, pageSize, filter);
+    fetchAggregatedLogs(1, pageSize, filter);
+  };
+
   useEffect(() => {
     fetchLogs(page, pageSize, filter);
     fetchAggregatedLogs(page, pageSize, filter);
@@ -221,5 +258,11 @@ export const usePageState = () => {
     totalPages,
     handleDownload,
     handleClearFilter,
+    dialogOpen,
+    setDialogOpen,
+    newLogData,
+    setNewLogData,
+    handleCreateNewLog,
+    handleGenerateRandomLogs,
   };
 };
