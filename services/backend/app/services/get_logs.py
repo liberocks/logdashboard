@@ -13,6 +13,8 @@ class GetLogsParameter(BaseModel):
     end_date: Optional[datetime] = None
     limit: int = Field(100, gte=1, lt=1001)
     offset: int = Field(0, gte=0)
+    sort_by: str = "timestamp"
+    sort_order: str = "desc"
 
 
 class GetLogsResponse(BaseModel):
@@ -41,9 +43,14 @@ async def get_logs_svc(parameter: GetLogsParameter, db: Prisma) -> GetLogsRespon
     elif parameter.end_date:
         filters["timestamp"] = {"lte": parameter.end_date}
 
+    if parameter.sort_by not in {"timestamp", "severity", "source"}:
+        parameter.sort_by = "timestamp"
+    if parameter.sort_order not in {"asc", "desc"}:
+        parameter.sort_order = "desc"
+
     logs = await db.log.find_many(
         where=filters,
-        order={"timestamp": "desc"},
+        order={parameter.sort_by: parameter.sort_order},
         skip=parameter.offset,
         take=parameter.limit,
     )

@@ -3,12 +3,18 @@ from io import StringIO
 
 from app.database import get_database
 from app.services.create_log import CreateLogPayload, CreateLogResponse, create_log_svc
+from app.services.delete_log import delete_log_svc
 from app.services.generate_logs import (
     GenerateLogsPayload,
     GenerateLogsResponse,
     generate_logs_svc,
 )
+from app.services.get_aggregated_logs import (
+    GetAggregatedLogsResponse,
+    get_aggregated_logs_svc,
+)
 from app.services.get_logs import GetLogsParameter, GetLogsResponse, get_logs_svc
+from app.services.update_log import UpdateLogResponse, update_log_svc
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from prisma import Prisma
@@ -24,6 +30,8 @@ async def get_logs(
     end_date: str | None = None,
     limit: int = 100,
     offset: int = 0,
+    sort_by: str = "timestamp",
+    sort_order: str = "desc",
     db: Prisma = Depends(get_database),
 ):
     """
@@ -37,10 +45,41 @@ async def get_logs(
         end_date=end_date,
         limit=limit,
         offset=offset,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     try:
         return await get_logs_svc(parameter, db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/aggregated", response_model=GetAggregatedLogsResponse)
+async def get_aggreagated_logs(
+    severity: str | None = None,
+    source: str | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+    db: Prisma = Depends(get_database),
+):
+    """
+    Get aggregated log entries based on filters
+    """
+
+    parameter = GetLogsParameter(
+        severity=severity,
+        source=source,
+        start_date=start_date,
+        end_date=end_date,
+        limit=limit,
+        offset=offset,
+    )
+
+    try:
+        return await get_aggregated_logs_svc(parameter, db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -53,6 +92,8 @@ async def download_logs(
     end_date: str | None = None,
     limit: int = 10000,
     offset: int = 0,
+    sort_by: str = "timestamp",
+    sort_order: str = "desc",
     db: Prisma = Depends(get_database),
 ):
     """
@@ -66,6 +107,8 @@ async def download_logs(
         end_date=end_date,
         limit=limit,
         offset=offset,
+        sort_by=sort_by,
+        sort_order=sort_order,
     )
 
     try:
@@ -89,6 +132,20 @@ async def download_logs(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/generate", response_model=GenerateLogsResponse)
+async def generate_log(
+    payload: GenerateLogsPayload, db: Prisma = Depends(get_database)
+):
+    """
+    Generate random log entries
+    """
+
+    try:
+        return await generate_logs_svc(payload, db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("", response_model=CreateLogResponse)
 async def create_log(payload: CreateLogPayload, db: Prisma = Depends(get_database)):
     """
@@ -101,15 +158,27 @@ async def create_log(payload: CreateLogPayload, db: Prisma = Depends(get_databas
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/generate", response_model=GenerateLogsResponse)
-async def generate_log(
-    payload: GenerateLogsPayload, db: Prisma = Depends(get_database)
+@router.put("/{log_id}", response_model=UpdateLogResponse)
+async def update_log(
+    log_id: str, payload: CreateLogPayload, db: Prisma = Depends(get_database)
 ):
     """
-    Generate random log entries
+    Update an existing log entry by ID
     """
 
     try:
-        return await generate_logs_svc(payload, db)
+        return await update_log_svc(log_id, payload, db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{log_id}", status_code=204)
+async def delete_log(log_id: str, db: Prisma = Depends(get_database)):
+    """
+    Delete a log entry by ID
+    """
+
+    try:
+        await delete_log_svc(log_id, db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
