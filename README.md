@@ -8,6 +8,7 @@
 - Frontend built with Next.js and Tailwind CSS
 - Endpoint to generate random logs for testing purposes
 - UV modern package manager for Python dependencies
+- Feature to download logs as CSV 
 
 ## Getting Started
 To quickly get started with the Log Dashboard application, you can run docker compose with this command:
