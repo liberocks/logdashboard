@@ -9,4 +9,17 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
- 
+
+model Log {
+  id        String   @id @default(uuid())
+  severity  String
+  message   String
+  source    String
+  metadata  Json?
+  timestamp DateTime @default(now())
+
+  @@index([severity])
+  @@index([timestamp])
+  @@index([source])
+  @@map("logs")
+}
