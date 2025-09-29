@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import Optional
 
@@ -11,7 +12,7 @@ class GetLogsParameter(BaseModel):
     source: Optional[str] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    limit: int = Field(100, gte=1, lt=1001)
+    limit: int = Field(100, gte=1, lt=999999)
     offset: int = Field(0, gte=0)
     sort_by: str = "timestamp"
     sort_order: str = "desc"
@@ -20,6 +21,8 @@ class GetLogsParameter(BaseModel):
 class GetLogsResponse(BaseModel):
     status_code: int
     logs: list[LogModel]
+    total: int
+    total_pages: int
 
 
 async def get_logs_svc(parameter: GetLogsParameter, db: Prisma) -> GetLogsResponse:
@@ -48,12 +51,19 @@ async def get_logs_svc(parameter: GetLogsParameter, db: Prisma) -> GetLogsRespon
     if parameter.sort_order not in {"asc", "desc"}:
         parameter.sort_order = "desc"
 
-    logs = await db.log.find_many(
-        where=filters,
-        order={parameter.sort_by: parameter.sort_order},
-        skip=parameter.offset,
-        take=parameter.limit,
+    # Run count and find_many queries in parallel for better performance
+    total_count, logs = await asyncio.gather(
+        db.log.count(where=filters),
+        db.log.find_many(
+            where=filters,
+            order={parameter.sort_by: parameter.sort_order},
+            skip=parameter.offset,
+            take=parameter.limit,
+        ),
     )
+
+    # Calculate total pages
+    total_pages = (total_count + parameter.limit - 1) // parameter.limit
 
     log_list = [
         LogModel(
@@ -66,4 +76,6 @@ async def get_logs_svc(parameter: GetLogsParameter, db: Prisma) -> GetLogsRespon
         for log in logs
     ]
 
-    return GetLogsResponse(logs=log_list, status_code=200)
+    return GetLogsResponse(
+        logs=log_list, status_code=200, total=total_count, total_pages=total_pages
+    )

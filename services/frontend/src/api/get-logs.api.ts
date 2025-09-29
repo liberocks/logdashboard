@@ -2,6 +2,7 @@ import { ofetch } from "ofetch";
 import { z } from "zod";
 
 import { API_BASE_URL } from "@/constants";
+
 import { GetLogsParameter, GetLogsParameterSchema, GetLogsResponse, GetLogsResponseSchema } from "./get-logs.schema";
 
 export async function getLogs(params?: Partial<GetLogsParameter>): Promise<GetLogsResponse> {
@@ -25,7 +26,7 @@ export async function getLogs(params?: Partial<GetLogsParameter>): Promise<GetLo
     searchParams.append("limit", validatedParams.limit.toString());
     searchParams.append("offset", validatedParams.offset.toString());
 
-    const url = `${API_BASE_URL}/logs${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${API_BASE_URL}/api/v1/logs${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
     const response = await ofetch(url, {
       method: "GET",

@@ -27,7 +27,7 @@ export async function downloadLogs(params?: Partial<GetLogsParameter>): Promise<
     searchParams.append("limit", validatedParams.limit.toString());
     searchParams.append("offset", validatedParams.offset.toString());
 
-    const url = `${API_BASE_URL}/logs/download${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+    const url = `${API_BASE_URL}/api/v1/logs/download${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
     const response = await ofetch(url, {
       method: "GET",

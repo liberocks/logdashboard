@@ -8,7 +8,7 @@ export async function generateLogs(payload: GenerateLogsPayload): Promise<Genera
   const validatedPayload = GenerateLogsPayloadSchema.parse(payload);
 
   try {
-    const response = await ofetch(`${API_BASE_URL}/logs/generate`, {
+    const response = await ofetch(`${API_BASE_URL}/api/v1/logs/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

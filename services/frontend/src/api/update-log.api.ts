@@ -1,15 +1,15 @@
 import { ofetch } from "ofetch";
 import { z } from "zod";
 
-import { SeverityLevel } from "@/constants/severity";
-import { UpdateLogPayload, UpdateLogPayloadSchema, UpdateLogResponse, UpdateLogResponseSchema } from "./update-log.schema";
 import { API_BASE_URL } from "@/constants";
+
+import { UpdateLogPayload, UpdateLogPayloadSchema, UpdateLogResponse, UpdateLogResponseSchema } from "./update-log.schema";
 
 export async function updateLog(logId: string, payload: UpdateLogPayload): Promise<UpdateLogResponse> {
   const validatedPayload = UpdateLogPayloadSchema.parse(payload);
 
   try {
-    const response = await ofetch(`${API_BASE_URL}/logs/${logId}`, {
+    const response = await ofetch(`${API_BASE_URL}/api/v1/logs/${logId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -26,14 +26,4 @@ export async function updateLog(logId: string, payload: UpdateLogPayload): Promi
 
     throw error;
   }
-}
-
-export async function updateLogEntry(logId: string, severity: SeverityLevel, message: string, source: string): Promise<UpdateLogResponse> {
-  const payload: UpdateLogPayload = {
-    severity,
-    message,
-    source,
-  };
-
-  return updateLog(logId, payload);
 }

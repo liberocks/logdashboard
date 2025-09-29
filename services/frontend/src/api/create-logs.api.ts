@@ -9,7 +9,7 @@ export async function createLog(payload: CreateLogPayload): Promise<CreateLogRes
   const validatedPayload = CreateLogPayloadSchema.parse(payload);
 
   try {
-    const response = await ofetch(`${API_BASE_URL}/logs`, {
+    const response = await ofetch(`${API_BASE_URL}/api/v1/logs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
