@@ -13,6 +13,7 @@ from app.services.get_aggregated_logs import (
     GetAggregatedLogsResponse,
     get_aggregated_logs_svc,
 )
+from app.services.get_log import GetLogResponse, get_log_svc
 from app.services.get_logs import GetLogsParameter, GetLogsResponse, get_logs_svc
 from app.services.update_log import UpdateLogResponse, update_log_svc
 from fastapi import APIRouter, Depends, HTTPException
@@ -154,6 +155,21 @@ async def create_log(payload: CreateLogPayload, db: Prisma = Depends(get_databas
 
     try:
         return await create_log_svc(payload, db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{log_id}", response_model=GetLogResponse)
+async def get_log(log_id: str, db: Prisma = Depends(get_database)):
+    """
+    Get a log entry by ID
+    """
+
+    try:
+        log = await get_log_svc(log_id, db)
+        if not log:
+            raise HTTPException(status_code=404, detail="Log not found")
+        return log
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

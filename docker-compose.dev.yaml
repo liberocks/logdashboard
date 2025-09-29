@@ -4,13 +4,13 @@ services:
   # PostgreSQL Database
   database:
     image: postgres:15-alpine
-    container_name: logdashboard-db
+    container_name: logdashboard-db-dev
     environment:
       POSTGRES_DB: logdashboard
       POSTGRES_USER: logdash_user
       POSTGRES_PASSWORD: logdash_password
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_dev:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -21,12 +21,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # Database Migration Service
+  # Database Migration Service (Development)
   migrate:
     build:
       context: ./services/backend
       dockerfile: Dockerfile
-    container_name: logdashboard-migrate
+    container_name: logdashboard-migrate-dev
     environment:
       DATABASE_URL: "postgresql://logdash_user:logdash_password@database:5432/logdashboard"
     depends_on:
@@ -34,15 +34,18 @@ services:
         condition: service_healthy
     networks:
       - logdashboard-network
+    volumes:
+      # Mount source code for development
+      - ./services/backend:/app
     command: ["./migrate.sh"]
     restart: "no"
 
-  # Backend FastAPI Service
+  # Backend FastAPI Service (Development)
   backend:
     build:
       context: ./services/backend
       dockerfile: Dockerfile
-    container_name: logdashboard-backend
+    container_name: logdashboard-backend-dev
     environment:
       DATABASE_URL: "postgresql://logdash_user:logdash_password@database:5432/logdashboard"
       DEBUG: "True"
@@ -59,29 +62,38 @@ services:
         condition: service_completed_successfully
     networks:
       - logdashboard-network
+    volumes:
+      # Mount source code for development with hot reload
+      - ./services/backend:/app
     restart: unless-stopped
+    command: ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Frontend Next.js Service
+  # Frontend Next.js Service (Development)
   frontend:
-    build:
-      context: ./services/frontend
-      dockerfile: Dockerfile
-    container_name: logdashboard-frontend
+    image: node:20-alpine
+    container_name: logdashboard-frontend-dev
+    working_dir: /app
     environment:
       NEXT_PUBLIC_API_URL: "http://localhost:8000"
-      NODE_ENV: "production"
+      NODE_ENV: "development"
     ports:
       - "3000:3000"
     depends_on:
       - backend
     networks:
       - logdashboard-network
+    volumes:
+      # Mount source code for development with hot reload
+      - ./services/frontend:/app
+      - /app/node_modules
+      - /app/.next
     restart: unless-stopped
+    command: sh -c "corepack enable pnpm && pnpm install && pnpm dev"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
@@ -93,4 +105,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data_dev:

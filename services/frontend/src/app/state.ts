@@ -164,24 +164,6 @@ export const usePageState = () => {
     }
   };
 
-  // Function to get severity color
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "DEBUG":
-        return "text-gray-500";
-      case "INFO":
-        return "text-blue-600";
-      case "WARN":
-        return "text-yellow-600";
-      case "ERROR":
-        return "text-red-600";
-      case "FATAL":
-        return "text-red-800";
-      default:
-        return "text-gray-600";
-    }
-  };
-
   // Calculate total pages
   const totalPages = Math.ceil(total / pageSize);
 
@@ -232,8 +214,11 @@ export const usePageState = () => {
 
   useEffect(() => {
     fetchLogs(page, pageSize, filter);
-    fetchAggregatedLogs(page, pageSize, filter);
   }, [page, pageSize, filter, sortField, sortDirection]);
+
+  useEffect(() => {
+    fetchAggregatedLogs(page, pageSize, filter);
+  }, [page, pageSize, filter]);
 
   return {
     page,
@@ -254,7 +239,6 @@ export const usePageState = () => {
     sortDirection,
     handleSort,
     uniqueSources,
-    getSeverityColor,
     totalPages,
     handleDownload,
     handleClearFilter,

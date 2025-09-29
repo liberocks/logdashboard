@@ -2,6 +2,8 @@ export * from "./create-logs.schema";
 export * from "./create-logs.api";
 export * from "./get-logs.schema";
 export * from "./get-logs.api";
+export * from "./get-log.schema";
+export * from "./get-log.api";
 export * from "./generate-logs.schema";
 export * from "./generate-logs.api";
 export * from "./update-log.schema";

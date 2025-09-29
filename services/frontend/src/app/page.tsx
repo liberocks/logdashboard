@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Plus, Download, Dot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -16,6 +17,7 @@ import moment from "moment";
 import { getAggregatedLogs, GetAggregatedLogsResponse, GetLogsParameter } from "@/api";
 import { SEVERITY_LEVELS } from "@/constants/severity";
 import { usePageState } from "./state";
+import { getSeverityColor } from "@/lib/severity";
 
 const chartConfig = {
   DEBUG: {
@@ -41,6 +43,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function Home() {
+  const router = useRouter();
   const {
     page,
     setPage,
@@ -60,7 +63,6 @@ export default function Home() {
     sortDirection,
     handleSort,
     uniqueSources,
-    getSeverityColor,
     totalPages,
     handleDownload,
     handleClearFilter,
@@ -168,20 +170,24 @@ export default function Home() {
 
           <div className="flex w-full flex-row items-center justify-between gap-2">
             <div className="flex-1 rounded border border-gray-300 p-5">
-              <div className="text-sm text-gray-500">Total Logs</div>
+              <div className="text-sm text-gray-500">Total ogs</div>
               <div className="text-xl font-semibold text-gray-600">{total}</div>
             </div>
             <div className="flex-1 rounded border border-gray-300 p-5">
-              <div className="text-sm text-gray-500">Total Success</div>
-              <div className="text-xl font-semibold text-green-600">
-                {(["INFO", "DEBUG"] as Array<keyof typeof chartConfig>).reduce((sum, key) => sum + (aggregatedLogs?.severity_counts[key] || 0), 0)}
-              </div>
+              <div className="text-sm text-gray-500">Info count</div>
+              <div className="text-xl font-semibold text-green-600">{aggregatedLogs?.severity_counts.INFO || 0}</div>
             </div>
             <div className="flex-1 rounded border border-gray-300 p-5">
-              <div className="text-sm text-gray-500">Total Error</div>
-              <div className="text-xl font-semibold text-red-600">
-                {(["ERROR", "FATAL"] as Array<keyof typeof chartConfig>).reduce((sum, key) => sum + (aggregatedLogs?.severity_counts[key] || 0), 0)}
-              </div>
+              <div className="text-sm text-gray-500">Warning count</div>
+              <div className="text-xl font-semibold text-yellow-600">{aggregatedLogs?.severity_counts.WARN || 0}</div>
+            </div>
+            <div className="flex-1 rounded border border-gray-300 p-5">
+              <div className="text-sm text-gray-500">Error count</div>
+              <div className="text-xl font-semibold text-red-600">{aggregatedLogs?.severity_counts.ERROR || 0}</div>
+            </div>
+            <div className="flex-1 rounded border border-gray-300 p-5">
+              <div className="text-sm text-gray-500">Fatal count</div>
+              <div className="text-xl font-semibold text-red-800">{aggregatedLogs?.severity_counts.FATAL || 0}</div>
             </div>
           </div>
           <div className="w-full">
@@ -287,7 +293,7 @@ export default function Home() {
               </TableHeader>
               <TableBody>
                 {logs.map((log) => (
-                  <TableRow key={log.id}>
+                  <TableRow key={log.id} className="cursor-pointer transition-colors hover:bg-gray-50" onClick={() => router.push(`/${log.id}`)}>
                     <TableCell className="font-mono text-sm">{moment(log.timestamp).format("YYYY-MM-DD HH:mm:ss")}</TableCell>
                     <TableCell>
                       <span className={`font-medium ${getSeverityColor(log.severity)}`}>{log.severity}</span>
