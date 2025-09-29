@@ -131,6 +131,36 @@ export const usePageState = () => {
     setPage(1);
   };
 
+  // Helper function to get start date from filter
+  const getStartDate = (): Date | undefined => {
+    return filter.start_date ? new Date(filter.start_date) : undefined;
+  };
+
+  // Helper function to get end date from filter
+  const getEndDate = (): Date | undefined => {
+    return filter.end_date ? new Date(filter.end_date) : undefined;
+  };
+
+  // Function to handle start date changes
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (date) {
+      const isoDate = moment(date).startOf("day").toISOString();
+      handleFilterChange("start_date", isoDate);
+    } else {
+      handleFilterChange("start_date", undefined);
+    }
+  };
+
+  // Function to handle end date changes
+  const handleEndDateChange = (date: Date | undefined) => {
+    if (date) {
+      const isoDate = moment(date).endOf("day").toISOString();
+      handleFilterChange("end_date", isoDate);
+    } else {
+      handleFilterChange("end_date", undefined);
+    }
+  };
+
   // Function to get severity color
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -158,6 +188,11 @@ export const usePageState = () => {
     });
   };
 
+  const handleClearFilter = () => {
+    setFilter({});
+    setPage(1);
+  };
+
   useEffect(() => {
     fetchLogs(page, pageSize, filter);
     fetchAggregatedLogs(page, pageSize, filter);
@@ -168,6 +203,10 @@ export const usePageState = () => {
     setPage,
     pageSize,
     handlePageSizeChange,
+    getStartDate,
+    getEndDate,
+    handleStartDateChange,
+    handleEndDateChange,
     logs,
     aggregatedLogs,
     total,
@@ -181,5 +220,6 @@ export const usePageState = () => {
     getSeverityColor,
     totalPages,
     handleDownload,
+    handleClearFilter,
   };
 };

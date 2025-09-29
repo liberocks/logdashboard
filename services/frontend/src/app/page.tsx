@@ -2,11 +2,12 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { useState, useEffect } from "react";
-import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Plus, Download } from "lucide-react";
+import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Plus, Download, Dot, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DatePicker } from "@/components/ui/date-picker";
 import { LogModel } from "@/model";
 import { getLogs } from "@/api/get-logs.api";
 import moment from "moment";
@@ -43,6 +44,10 @@ export default function Home() {
     setPage,
     pageSize,
     handlePageSizeChange,
+    getStartDate,
+    getEndDate,
+    handleStartDateChange,
+    handleEndDateChange,
     logs,
     aggregatedLogs,
     total,
@@ -56,6 +61,7 @@ export default function Home() {
     getSeverityColor,
     totalPages,
     handleDownload,
+    handleClearFilter,
   } = usePageState();
 
   return (
@@ -146,33 +152,18 @@ export default function Home() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">Logs per page</label>
-                <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
-                  <SelectTrigger className="w-32 cursor-pointer hover:bg-gray-50">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white">
-                    <SelectItem value="10" className="cursor-pointer hover:bg-gray-100">
-                      10
-                    </SelectItem>
-                    <SelectItem value="25" className="cursor-pointer hover:bg-gray-100">
-                      25
-                    </SelectItem>
-                    <SelectItem value="50" className="cursor-pointer hover:bg-gray-100">
-                      50
-                    </SelectItem>
-                    <SelectItem value="100" className="cursor-pointer hover:bg-gray-100">
-                      100
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <DatePicker
+                label="Start Date"
+                value={getStartDate()}
+                onChange={handleStartDateChange}
+                placeholder="Select start date"
+                id="start-date"
+              />
+              <DatePicker label="End Date" value={getEndDate()} onChange={handleEndDateChange} placeholder="Select end date" id="end-date" />
             </div>
             <div className="pt-7">
               <Button variant="outline" className="cursor-pointer" onClick={handleDownload}>
-                <Download className="mr-2 h-4 w-4" />
-                Download Logs
+                <Download className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -227,8 +218,38 @@ export default function Home() {
 
           {/* Pagination */}
           <div className="flex w-full items-center justify-between">
-            <div className="text-sm text-gray-500">
-              Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} logs
+            <div className="flex items-center gap-1">
+              <div className="text-sm text-gray-500">
+                Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, total)} of {total} logs
+              </div>
+              <Dot className="text-gray-400" />
+              <div className="flex flex-row items-center gap-2">
+                <label className="text-sm text-gray-500">Logs per page</label>
+                <Select value={pageSize.toString()} onValueChange={(value) => handlePageSizeChange(parseInt(value))}>
+                  <SelectTrigger className="w-32 cursor-pointer hover:bg-gray-50">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="10" className="cursor-pointer hover:bg-gray-100">
+                      10
+                    </SelectItem>
+                    <SelectItem value="25" className="cursor-pointer hover:bg-gray-100">
+                      25
+                    </SelectItem>
+                    <SelectItem value="50" className="cursor-pointer hover:bg-gray-100">
+                      50
+                    </SelectItem>
+                    <SelectItem value="100" className="cursor-pointer hover:bg-gray-100">
+                      100
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Dot className="text-gray-400" />
+                <Button variant="ghost" className="cursor-pointer" onClick={handleClearFilter}>
+                  <X className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => setPage(page - 1)} disabled={page === 1}>
